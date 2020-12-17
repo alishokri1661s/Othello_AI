@@ -1,7 +1,6 @@
 package View;
 
 import Controller.Board;
-import com.sun.deploy.panel.JavaPanel;
 
 import javax.swing.*;
 import java.awt.*;
