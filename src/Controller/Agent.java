@@ -2,6 +2,7 @@ package Controller;
 import Model.Point ;
 
 import java.util.Arrays;
+import java.util.Date;
 
 public class Agent {
     Board mainBoard = Board.getInstance();
@@ -16,7 +17,11 @@ public class Agent {
     private static int numberOfChildren = 0;
     private static int maxDepth = 7;
 
-    public int heuristic(Board board) {
+//    private int PointSort(){
+//
+//    }
+
+    private int heuristic(Board board) {
 
         //double[] X = new double[2] ;
 
@@ -24,6 +29,7 @@ public class Agent {
         for (int i = 0; i < board.getBoard().length; i++) {
             for (int j = 0; j < board.getBoard()[i].length; j++) {
                 int x = board.getColor(i,j) == Board.WHITE ? 1 : -1  ;
+                x = board.getColor(i,j) == Board.EMPTY ? 0 : x ;
                 linearSum += weights[i][j] * x ;
             }
         }
@@ -32,7 +38,7 @@ public class Agent {
 
     //Called with the knowledge that there is a move to choose
     public Point chooseMove() {
-
+        Date d1 = new Date();
         Point choice = null;
         int alpha = Integer.MIN_VALUE;
         int beta = Integer.MAX_VALUE;
@@ -52,6 +58,8 @@ public class Agent {
             alpha = Math.max(alpha, value);
         }
         System.out.println();
+        Date d2 = new Date();
+        System.out.println(( d2.getTime()-(double) d1.getTime())/1000);
         return choice;
     }
 
