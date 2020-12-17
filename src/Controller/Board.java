@@ -148,22 +148,6 @@ public class Board{
 
 
     public boolean canMove(){
-        /*ArrayList<Point> dire;
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                if(this.board[i][j]==EMPTY){
-                    dire = getValidDirections(i,j) ;
-
-                    for (Point point : dire) {
-                        if (checkDirectionMove(new Point(i, j), point, this.currentPlayer)) {
-                            return true ;
-                        }
-                    }
-                }
-            }
-        }
-        return false ;*/
-
         return !availableMoves.isEmpty();
     }
 
