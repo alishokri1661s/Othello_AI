@@ -46,7 +46,7 @@ public class Square extends JPanel implements MouseListener {
                     LENGTH - 2*PIECE_BUFFER);
         }
         else if(board.getAvailableMoves().contains(new Point(x,y))) {
-            int current = board.currentPlayer;
+            int current = board.getCurrentPlayer();
             if(current == Board.WHITE) {
                 g.setColor(new Color(255,255,255,80));
                 g.fillOval(PIECE_BUFFER, PIECE_BUFFER,
@@ -64,12 +64,7 @@ public class Square extends JPanel implements MouseListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-
-        if (board.canMove()){
-            board.move(new Point(x,y));
-        }else
-            board.changeTurn();
-
+        board.play(new Point(x,y));
         GUI.getInstance().paint();
     }
 

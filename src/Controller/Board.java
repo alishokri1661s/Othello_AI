@@ -2,46 +2,54 @@ package Controller;
 
 import Model.Point;
 import View.GUI;
-import jdk.nashorn.internal.ir.Block;
-import jdk.nashorn.internal.ir.WhileNode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Scanner;
+import java.util.HashSet;
+
+import static Model.Utils.*;
 
 public class Board{
 
     private static Board instance;
-
     public static Board getInstance(){
         if (instance==null)
             instance = new Board();
         return instance;
     }
 
-    public final static int SIZE = 8 ;
+    public static Agent agent = new Agent();
+
+    public final int SIZE = 8 ;
     public final static int WHITE = 2;
     public final static int BLACK = 1 ;
     public final static int EMPTY = 0 ;
+    private boolean useAI = true;
+
 
     public int currentPlayer;
 
-    private ArrayList<Point> availableMoves = new ArrayList<>(); ;
+    private HashSet<Point> availableMoves = new HashSet<>(); ;
     private int[][] board = new int[SIZE][SIZE] ;
 
     private int blackScore=2;
     private int whiteScore=2;
 
+    public static Board copyBoard (Board b){
+        Board board = new Board();
 
-
-    private Board(){
+        board.setBoard(copyMatrix(b.getBoard()));
+        board.whiteScore = b.getWhiteScore();
+        board.blackScore = b.getBlackScore();
+        board.currentPlayer = b.currentPlayer;
+        board.availableMoves = (HashSet<Point>) b.availableMoves.clone();
+        return board;
     }
 
     public void init(){
         for (int[] states : board) {
             Arrays.fill(states, EMPTY);
         }
-
         currentPlayer = BLACK ;
 
         board[3][3] = WHITE ;
@@ -51,7 +59,7 @@ public class Board{
         blackScore = 2;
         whiteScore = 2;
 
-        canMove();
+        findAvailableMoves();
     }
 
 
@@ -130,7 +138,7 @@ public class Board{
             if(getColor(row,col)==EMPTY)
                 break ;
             if(getColor(row,col)==turn){
-               return true ;
+                return true ;
             }
             row += dx ;
             col += dy ;
@@ -140,6 +148,26 @@ public class Board{
 
 
     public boolean canMove(){
+        /*ArrayList<Point> dire;
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                if(this.board[i][j]==EMPTY){
+                    dire = getValidDirections(i,j) ;
+
+                    for (Point point : dire) {
+                        if (checkDirectionMove(new Point(i, j), point, this.currentPlayer)) {
+                            return true ;
+                        }
+                    }
+                }
+            }
+        }
+        return false ;*/
+
+        return !availableMoves.isEmpty();
+    }
+
+    public void findAvailableMoves(){
         availableMoves.clear();
         ArrayList<Point> dire;
 
@@ -156,27 +184,65 @@ public class Board{
                 }
             }
         }
-        return availableMoves.size()>0 ;
     }
 
 
     public void changeTurn(){
         this.currentPlayer = getOppositeTurn(this.currentPlayer);
-        if (!canMove()){
+        /*if (!canMove()){
             this.currentPlayer = getOppositeTurn(this.currentPlayer);
             if(!canMove()){
                 endGame();
             }
-        }
-
+            findAvailableMoves();
+            return false;
+        }*/
+        findAvailableMoves();
     }
 
+    public boolean checkEnd(){
+        if (!canMove()){
+            changeTurn();
+            return !canMove();
+        }
+        return false;
+    }
+
+    public boolean isValidMove(Point move){
+        return availableMoves.contains(move);
+    }
+
+    public void play (Point square){
+        if (!isValidMove(square))
+            return;
+
+        if (getCurrentPlayer() == Board.BLACK) {
+            if (canMove()) {
+                System.out.println("Black move");
+                move(square);
+                changeTurn();
+                if(checkEnd()){
+                    endGame();
+                }
+            }
+        }
+        GUI.getInstance().paint();
+
+        if (getCurrentPlayer() == Board.WHITE) {
+            System.out.println("White move");
+            move(Board.getAgent().chooseMove());
+            System.out.println("after black move");
+            changeTurn();
+            if(checkEnd()){
+                endGame();
+            }
+            if (getCurrentPlayer() == Board.WHITE)
+                play(square);
+        }
+    }
 
     public void move(Point move){
 
-        if (!availableMoves.contains(move)){
-            return;
-        }
         int x = move.x;
         int y = move.y;
         ArrayList<Point> directions = getValidDirections(x,y) ;
@@ -185,9 +251,7 @@ public class Board{
             flipCells(move, direction);
         }
         updateScores();
-        changeTurn();
     }
-
 
     public int getWinner(){
         if (blackScore==whiteScore){
@@ -230,12 +294,15 @@ public class Board{
         }
     }
 
+    public void setBoard(int[][] board) {
+        this.board = board;
+    }
 
     public int[][] getBoard() {
         return board;
     }
 
-    public ArrayList<Point> getAvailableMoves() {
+    public HashSet<Point> getAvailableMoves() {
         return availableMoves;
     }
 
@@ -245,5 +312,22 @@ public class Board{
 
     public int getWhiteScore() {
         return whiteScore;
+    }
+    public int getScore(int color){
+        if(color==BLACK)
+            return getBlackScore();
+        else
+            return getWhiteScore() ;
+    }
+    public int getCurrentPlayer() {
+        return currentPlayer;
+    }
+
+    public static Agent getAgent() {
+        return agent;
+    }
+
+    public void setTurn (int turn){
+        currentPlayer = turn;
     }
 }
