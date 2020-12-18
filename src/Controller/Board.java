@@ -26,6 +26,7 @@ public class Board{
     public final static int EMPTY = 0 ;
     private boolean useAI = true;
     private double probability ;
+    private int heuristic;
 
     public int currentPlayer;
     public boolean isWhiteBot = true;
@@ -202,34 +203,18 @@ public class Board{
         if (!isValidMove(square) && !isCurrentBot())
             return;
 
-        if (getCurrentPlayer() == Board.BLACK) {
-            //if (canMove()) {
-            if(isCurrentBot())
-                move(Board.getAgent().chooseMove());
-            else
-                move(square);
-                changeTurn();
-                if(checkEnd()){
-                    endGame();
-                }
-            //}
+        if(isCurrentBot())
+//            move(Board.getAgent().chooseMove());
+            move(Board.getAgent().iterative_deepening());
+        else
+            move(square);
+        changeTurn();
+        if(checkEnd()){
+            endGame();
+            return;
         }
-        else if (getCurrentPlayer() == Board.WHITE) {
-            if(isCurrentBot())
-                move(Board.getAgent().chooseMove());
-            else
-                move(square);
-            changeTurn();
-            if(checkEnd()){
-                endGame();
-                return;
-            }
-        }
-
 
         GUI.getInstance().paint();
-
-
 
         if (isCurrentBot()) {
             new Thread(){
@@ -343,5 +328,13 @@ public class Board{
 
     public double getProbability() {
         return probability;
+    }
+
+    public void setHeuristic(int heuristic) {
+        this.heuristic = heuristic;
+    }
+
+    public int getHeuristic() {
+        return heuristic;
     }
 }

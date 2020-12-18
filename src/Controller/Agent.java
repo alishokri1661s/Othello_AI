@@ -1,12 +1,11 @@
 package Controller;
 import Model.Point ;
 
-import java.security.PrivateKey;
 import java.util.*;
 
 public class Agent {
     Board mainBoard = Board.getInstance();
-    private static double T  ;
+
     private static int[][] weights = {
             {99, -8, 8, 6, 6, 8, -8, 99},
             {-8, -24, -4, -3, -3, -4, -24, -8},
@@ -18,14 +17,18 @@ public class Agent {
             {99, -8, 8, 6, 6, 8, -8, 99}};
 
     //for debug
+    private static double T  ;
     private static int numberOfChildren = 0;
     private static long numberOfBurning = 0;
     private static int maxDepth = 7;
     private static Date Time_start ;
     private static Date Time_end ;
-    private static double Time_limit = 5000;
+    private static double Time_limit = 3000;
     private static int Alpha  ;
     private static int Beta ;
+    static boolean isCompleted ;
+
+
     private ArrayList<Map.Entry<Point,Integer>> pointSort(HashSet<Point> set, boolean isAsc) {
         HashMap<Point,Integer> map = new HashMap<>();
         for (Point p : set) {
@@ -45,16 +48,19 @@ public class Agent {
         Beta = Integer.MAX_VALUE ;
         Time_start = new Date( );
         T = 0 ;
-        for (int i = 5; i <10 ; i++) {
+        for (int i = 7; i <20 ; i++) {
             maxDepth = i ;
-            move = chooseMove();
+            Point Temp = chooseMove();
             Time_end = new Date() ;
             T = Time_end.getTime() - Time_start.getTime() ;
-            if(T > Time_limit){
-                System.out.println(T);
-                System.out.println(maxDepth) ;
-                return move ;
+            if(!isCompleted){
+                maxDepth-- ;
+                break;
             }
+            else if(T > Time_limit){
+                break ;
+            }
+            move = Temp ;
         }
         System.out.println(T);
         System.out.println(maxDepth) ;
@@ -78,10 +84,11 @@ public class Agent {
     public Point chooseMove() {
         Date d1 = new Date();
         Point choice = null;
-        int alpha = Integer.MIN_VALUE ;
-        int beta = Integer.MAX_VALUE;
+        int alpha = Alpha ;
+        int beta = Beta;
         int value;
         int maxValue = Integer.MIN_VALUE;
+        isCompleted = true ;
         for (Point p : mainBoard.getAvailableMoves()) {
 
             numberOfChildren = 0;
@@ -105,71 +112,90 @@ public class Agent {
         return choice;
     }
 
-    public ArrayList<Map.Entry<Board,Integer>> assign_potential(Board board,ArrayList<Map.Entry<Point,Integer>> LIST){
+    public ArrayList<Board> assign_potential(Board board){
         ArrayList<Board> boards = new ArrayList<>() ;
         int sum = 0 ;
-        ArrayList<Map.Entry<Board,Integer>> probability_assignment = new ArrayList<>();
-        for(Map.Entry<Point,Integer> p : LIST){
+
+        for(Point p : board.getAvailableMoves()){
             Board b = Board.copyBoard(board) ;
-            b.move(p.getKey());
+            b.move(p);
             int heuristic_value = heuristic(b) ;
+            b.setHeuristic(heuristic_value);
             b.setProbability(heuristic_value);
             boards.add(b) ;
             sum += heuristic_value ;
         }
-        double p = Math.random() ;
-        double accumulation = 0 ;
-        boards.sort(new Comparator<Board>() {
-            @Override
-            public int compare(Board o1, Board o2) {
-                return (int) o1.getProbability() - (int) o2.getProbability()  ;
-            }
-        });
-        ArrayList<Board> newBoards = new ArrayList<>() ;
+
+
+
         for(Board b : boards ){
-            accumulation+=b.getProbability()/sum ;
-            b.setProbability(accumulation);
+            b.setProbability(1- (b.getProbability()/sum));
         }
-        int t = board.getAvailableMoves().size() ;
-        t = t/2 ;
+        boards.sort(Comparator.comparingInt(o -> (int) o.getProbability()));
 
-        for (int i = 0; i <=t/2 ; i++) {
-            p = Math.random() ;
-            for (int j = 0; j <boards.size() ; j++) {
-                if(j==0){
-                    if(p <= boards.get(j).getProbability()){
-                        newBoards.add(boards.get(j)) ;
-                    }
-                }
-                else if(j == boards.size()-1){
-                    if(p>=boards.get(j).getProbability()){
+        int firstSize = boards.size();
+        int size = firstSize;
 
-                    }
+
+        if (board.getAvailableMoves().size()<4)
+            return boards;
+        if (board.getAvailableMoves().size()<6)
+            firstSize-=2;
+        if (board.getAvailableMoves().size()>9)
+            firstSize+=2;
+        if (board.getAvailableMoves().size()>13)
+            firstSize+=2;
+        if (board.getAvailableMoves().size()>17)
+            firstSize+=2;
+
+
+
+
+        double p = Math.random() ;
+        for (int i = 0; i < firstSize/2 ; i++) {
+            for (int j = 0 ; j < size ; j++) {
+                if (p <= boards.get(j).getProbability()){
+                    boards.remove(j);
+                    size--;
+                    break;
                 }
             }
+
         }
-        return null ;
+        return boards;
     }
+
     private int Minimize(Board board, int alpha, int beta, int depth) {
         numberOfChildren++;
 //        System.out.println(depth + " - " + numberOfChildren);
 
         board.changeTurn();
 
+        Time_end = new Date() ;
+        T = Time_end.getTime() - Time_start.getTime();
+        if(T>=Time_limit){
+            isCompleted = false ;
+            return 0 ;
+        }
+
         if (board.checkEnd() || depth > maxDepth) {
-            return terminal(board);
+//            return terminal(board);
+            return board.getHeuristic();
         }
 
         int value = Integer.MAX_VALUE;
 
-        ArrayList<Map.Entry<Point,Integer>> list = pointSort(board.getAvailableMoves(),false);
+        //ArrayList<Map.Entry<Point,Integer>> list = pointSort(board.getAvailableMoves(),false);
 
+        ArrayList<Board> boards = assign_potential(board);
 
         //for (Point p : board.getAvailableMoves()) {
-        for (Map.Entry<Point,Integer> p :list) {
-            Board b = Board.copyBoard(board);
+//        for (Map.Entry<Point,Integer> p :list) {
+//            Board b = Board.copyBoard(board);
 //            b.move(p);
-            b.move(p.getKey());
+            //b.move(p.getKey());
+
+        for (Board b: boards) {
             value = Math.min(value, Maximize(b, alpha, beta, depth + 1));
             if (value <= alpha) {
                 return value;
@@ -185,9 +211,16 @@ public class Agent {
 
         board.changeTurn();
 
+        Time_end = new Date() ;
+        T = Time_end.getTime() - Time_start.getTime();
+        if(T>=Time_limit){
+            isCompleted = false ;
+            return 0 ;
+        }
+
         //terminal Test
         if (board.checkEnd() || depth > maxDepth) {
-            return terminal(board);
+            return board.getHeuristic();
         }
 
         //check for each move
@@ -195,13 +228,14 @@ public class Agent {
 
         int value = Integer.MIN_VALUE;
 
-        ArrayList<Map.Entry<Point,Integer>> list = pointSort(board.getAvailableMoves(),false);
 
+        //ArrayList<Map.Entry<Point,Integer>> list = pointSort(board.getAvailableMoves(),false);
+        ArrayList<Board> boards = assign_potential(board);
 
-        for (Map.Entry<Point,Integer> p :list) {
-            Board b = Board.copyBoard(board);
-            b.move(p.getKey());
-
+//        for (Map.Entry<Point,Integer> p :list) {
+//            Board b = Board.copyBoard(board);
+//            b.move(p.getKey());
+        for (Board b: boards) {
             value = Math.max(value, Minimize(b, alpha, beta, depth + 1));
 
             if (value >= beta) {
