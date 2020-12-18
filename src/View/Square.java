@@ -64,8 +64,14 @@ public class Square extends JPanel implements MouseListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
+
+        if (board.isCurrentBot())
+            return;
+
         board.play(new Point(x,y));
+
         GUI.getInstance().paint();
+        super.repaint();
     }
 
     @Override

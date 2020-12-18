@@ -1,12 +1,14 @@
 package Controller;
 import Model.Point ;
+import sun.plugin.javascript.navig.Link;
 
-import java.util.Arrays;
-import java.util.Date;
+import java.util.*;
 
 public class Agent {
     Board mainBoard = Board.getInstance();
-    private static int[][] weights = {{99, -8, 8, 6, 6, 8, -8, 99},
+
+    private static int[][] weights = {
+            {99, -8, 8, 6, 6, 8, -8, 99},
             {-8, -24, -4, -3, -3, -4, -24, -8},
             {8, -4, 7, 4, 4, 7, -4, 8},
             {6, -3, 4, 0, 0, 4, 3, 6},
@@ -14,17 +16,26 @@ public class Agent {
             {8, -4, 7, 4, 4, 7, -4, 8},
             {-8, -24, -4, -3, -3, -4, -24, -8},
             {99, -8, 8, 6, 6, 8, -8, 99}};
-    private static int numberOfChildren = 0;
-    private static int maxDepth = 7;
 
-//    private int PointSort(){
-//
-//    }
-    //hello
+    //for debug
+    private static int numberOfChildren = 0;
+    private static long numberOfBurning = 0;
+    private static int maxDepth = 6;
+
+    private ArrayList<Map.Entry<Point,Integer>> pointSort(HashSet<Point> set) {
+        HashMap<Point,Integer> map = new HashMap<>();
+        for (Point p : set) {
+            map.put(p,weights[p.x][p.y]);
+        }
+        ArrayList<Map.Entry<Point,Integer>> list = new ArrayList<>(map.entrySet());
+//        list.sort(Map.Entry.comparingByValue());
+        list.sort((Comparator) (o1, o2) -> ((Map.Entry<Point, Integer>) o2).getValue().compareTo(((Map.Entry<Point, Integer>) (o1)).getValue()));
+        return list;
+    }
+
 
     private int heuristic(Board board) {
 
-        //double[] X = new double[2] ;
 
         int linearSum = board.getAvailableMoves().size();
         for (int i = 0; i < board.getBoard().length; i++) {
@@ -48,19 +59,21 @@ public class Agent {
         for (Point p : mainBoard.getAvailableMoves()) {
 
             numberOfChildren = 0;
+            numberOfBurning = 0;
             Board b = Board.copyBoard(mainBoard);
             b.move(p);
             value = Minimize(b, alpha, beta, 0);
-            System.out.println(p + " - " + numberOfChildren);
+            System.out.println(p + " - numberOfChildren: " + numberOfChildren
+                    + " - numberOfBurning: " + numberOfBurning);
             if (maxValue < value) {
                 choice = p;
                 maxValue = value;
             }
             alpha = Math.max(alpha, value);
         }
-        System.out.println();
         Date d2 = new Date();
         System.out.println(( d2.getTime()-(double) d1.getTime())/1000);
+        System.out.println();
         return choice;
     }
 
@@ -104,13 +117,17 @@ public class Agent {
 
         int value = Integer.MIN_VALUE;
 
-        for (Point p : board.getAvailableMoves()) {
+        ArrayList<Map.Entry<Point,Integer>> list = pointSort(board.getAvailableMoves());
+
+
+        for (Map.Entry<Point,Integer> p :list) {
             Board b = Board.copyBoard(board);
-            b.move(p);
+            b.move(p.getKey());
 
             value = Math.max(value, Minimize(b, alpha, beta, depth + 1));
 
             if (value >= beta) {
+                numberOfBurning++;
                 return value;
             }
             alpha = Math.max(alpha, value);
@@ -120,15 +137,6 @@ public class Agent {
 
     private int terminal(Board board) {
         return heuristic(board);
-//            if(board.getWinner()== Board.BLACK){
-//                return -1*board.getBlackScore() ;
-//            }
-//            else if(board.getWinner()==Board.EMPTY){
-//                return 0 ;
-//            }
-//            else
-//                return board.getWhiteScore() ;
-//        }
 
     }
 }

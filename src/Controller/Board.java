@@ -28,6 +28,8 @@ public class Board{
 
 
     public int currentPlayer;
+    public boolean isWhiteBot = true;
+    public boolean isBlackBot = false;
 
     private HashSet<Point> availableMoves = new HashSet<>(); ;
     private int[][] board = new int[SIZE][SIZE] ;
@@ -197,31 +199,47 @@ public class Board{
     }
 
     public void play (Point square){
-        if (!isValidMove(square))
+        if (!isValidMove(square) && !isCurrentBot())
             return;
 
         if (getCurrentPlayer() == Board.BLACK) {
-            if (canMove()) {
-                System.out.println("Black move");
+            //if (canMove()) {
+            if(isCurrentBot())
+                move(Board.getAgent().chooseMove());
+            else
                 move(square);
                 changeTurn();
                 if(checkEnd()){
                     endGame();
                 }
-            }
+            //}
         }
-        GUI.getInstance().paint();
-
-        if (getCurrentPlayer() == Board.WHITE) {
-            System.out.println("White move");
-            move(Board.getAgent().chooseMove());
-            System.out.println("after black move");
+        else if (getCurrentPlayer() == Board.WHITE) {
+            if(isCurrentBot())
+                move(Board.getAgent().chooseMove());
+            else
+                move(square);
             changeTurn();
             if(checkEnd()){
                 endGame();
+                return;
             }
-            if (getCurrentPlayer() == Board.WHITE)
-                play(square);
+        }
+
+
+        GUI.getInstance().paint();
+
+
+
+        if (isCurrentBot()) {
+            new Thread(){
+                @Override
+                public void run() {
+                    play(square);
+                    super.run();
+                }
+            }.start();
+
         }
     }
 
@@ -276,6 +294,10 @@ public class Board{
         for (int i = 0; i <p.size() ; i++) {
             System.out.println(p.get(i).x + " " + p.get(i).y);
         }
+    }
+
+    public boolean isCurrentBot (){
+        return currentPlayer==WHITE ? isWhiteBot : isBlackBot;
     }
 
     public void setBoard(int[][] board) {
