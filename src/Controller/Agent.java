@@ -1,7 +1,8 @@
 package Controller;
 import Model.Point ;
-import sun.plugin.javascript.navig.Link;
+//import sun.plugin.javascript.navig.Link;
 
+import java.security.PrivateKey;
 import java.util.*;
 
 public class Agent {
@@ -20,7 +21,11 @@ public class Agent {
     //for debug
     private static int numberOfChildren = 0;
     private static long numberOfBurning = 0;
-    private static int maxDepth = 6;
+    private static int maxDepth = 7;
+    private static Date Time_start ;
+    private static Date Time_end ;
+    private static double Time_limit = 5000;
+
 
     private ArrayList<Map.Entry<Point,Integer>> pointSort(HashSet<Point> set, boolean isAsc) {
         HashMap<Point,Integer> map = new HashMap<>();
@@ -35,7 +40,18 @@ public class Agent {
         return list;
     }
 
-
+    public Point iterative_deepening(){
+        Point move = null;
+        for (int i = 5; i <10 ; i++) {
+            maxDepth = i ;
+            move = chooseMove();
+            double T = Time_start.getTime() - Time_end.getTime() ;
+            if(T > Time_limit){
+                return move ;
+            }
+        }
+        return move ;
+    }
     private int heuristic(Board board) {
 
 
