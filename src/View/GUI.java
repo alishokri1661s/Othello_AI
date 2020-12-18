@@ -78,6 +78,7 @@ public class GUI extends JFrame implements MouseListener {
         }
         super.repaint();
         panel.setScores(board.getWhiteScore(),board.getBlackScore());
+        panel.setTurnLabel(board.currentPlayer);
         panel.repaint();
     }
 
