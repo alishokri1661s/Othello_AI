@@ -19,14 +19,16 @@ public class Agent {
     //for debug
     private static double T  ;
     private static int numberOfChildren = 0;
-    private static long numberOfBurning = 0;
+    private static long numberOfPruning = 0;
     private static int maxDepth = 7;
     private static Date Time_start ;
     private static Date Time_end ;
-    private static double Time_limit = 3000;
-    private static int Alpha  ;
-    private static int Beta ;
-    static boolean isCompleted ;
+    private static final double Time_limit = 4000;
+    private static boolean isCompleted ;
+    private static final int maxBranching = 4;
+
+    public static int numberOfMoves=0;
+    public static int sumDepth=0;
 
 
     private ArrayList<Map.Entry<Point,Integer>> pointSort(HashSet<Point> set, boolean isAsc) {
@@ -44,11 +46,9 @@ public class Agent {
 
     public Point iterative_deepening(){
         Point move = null;
-        Alpha = Integer.MIN_VALUE ;
-        Beta = Integer.MAX_VALUE ;
         Time_start = new Date( );
         T = 0 ;
-        for (int i = 7; i <20 ; i++) {
+        for (int i = 6; i <50 ; i++) {
             maxDepth = i ;
             Point Temp = chooseMove();
             Time_end = new Date() ;
@@ -64,40 +64,31 @@ public class Agent {
         }
         System.out.println(T);
         System.out.println(maxDepth) ;
+        sumDepth+=maxDepth;
+        numberOfMoves++;
         return move ;
-    }
-    private int heuristic(Board board) {
 
-
-        int linearSum = board.getAvailableMoves().size();
-        for (int i = 0; i < board.getBoard().length; i++) {
-            for (int j = 0; j < board.getBoard()[i].length; j++) {
-                int x = board.getColor(i,j) == Board.WHITE ? 1 : -1  ;
-                x = board.getColor(i,j) == Board.EMPTY ? 0 : x ;
-                linearSum += weights[i][j] * x ;
-            }
-        }
-        return linearSum;
     }
+
 
     //Called with the knowledge that there is a move to choose
     public Point chooseMove() {
         Date d1 = new Date();
         Point choice = null;
-        int alpha = Alpha ;
-        int beta = Beta;
+        int alpha = Integer.MIN_VALUE ;
+        int beta = Integer.MAX_VALUE;
         int value;
         int maxValue = Integer.MIN_VALUE;
         isCompleted = true ;
         for (Point p : mainBoard.getAvailableMoves()) {
 
             numberOfChildren = 0;
-            numberOfBurning = 0;
+            numberOfPruning = 0;
             Board b = Board.copyBoard(mainBoard);
             b.move(p);
             value = Minimize(b, alpha, beta, 0);
             System.out.println(p + " - numberOfChildren: " + numberOfChildren
-                    + " - numberOfBurning: " + numberOfBurning);
+                    + " - numberOfPruning: " + numberOfPruning);
             if (maxValue < value) {
                 choice = p;
                 maxValue = value;
@@ -107,8 +98,6 @@ public class Agent {
         Date d2 = new Date();
         System.out.println(( d2.getTime()-(double) d1.getTime())/1000);
         System.out.println();
-        Alpha = alpha ;
-        Beta = beta ;
         return choice;
     }
 
@@ -139,7 +128,7 @@ public class Agent {
 
         if (board.getAvailableMoves().size()<4)
             return boards;
-        if (board.getAvailableMoves().size()<6)
+        /*if (board.getAvailableMoves().size()<6)
             firstSize-=2;
         if (board.getAvailableMoves().size()>9)
             firstSize+=2;
@@ -147,12 +136,10 @@ public class Agent {
             firstSize+=2;
         if (board.getAvailableMoves().size()>17)
             firstSize+=2;
-
-
-
-
-        double p = Math.random() ;
-        for (int i = 0; i < firstSize/2 ; i++) {
+*/
+        double p;
+        for (int i = 0; i < firstSize-maxBranching ; i++) {
+            p = Math.random() ;
             for (int j = 0 ; j < size ; j++) {
                 if (p <= boards.get(j).getProbability()){
                     boards.remove(j);
@@ -239,12 +226,29 @@ public class Agent {
             value = Math.max(value, Minimize(b, alpha, beta, depth + 1));
 
             if (value >= beta) {
-                numberOfBurning++;
+                numberOfPruning++;
                 return value;
             }
             alpha = Math.max(alpha, value);
         }
         return value;
+    }
+
+    private int heuristic(Board board) {
+        int linearSum;
+        if (board.currentPlayer == mainBoard.currentPlayer)
+            linearSum = board.getAvailableMoves().size();
+        else
+            linearSum = -1* board.getAvailableMoves().size();
+
+        for (int i = 0; i < board.getBoard().length; i++) {
+            for (int j = 0; j < board.getBoard()[i].length; j++) {
+                int x = board.getColor(i,j) == mainBoard.currentPlayer ? 1 : -1  ;
+                x = board.getColor(i,j) == Board.EMPTY ? 0 : x ;
+                linearSum += weights[i][j] * 3 * x ;
+            }
+        }
+        return linearSum;
     }
 
     private int terminal(Board board) {

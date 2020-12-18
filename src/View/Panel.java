@@ -20,11 +20,11 @@ public class Panel extends JPanel implements ActionListener {
         restartBtn.addActionListener(this);
 
         turnLabel = new JLabel();
-        turnLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        turnLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
         turnLabel.setFont(new Font("",Font.BOLD,20));
 
         scoreLabel = new JLabel();
-        scoreLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        scoreLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
         scoreLabel.setFont(new Font("",Font.BOLD,25));
 
         restartBtn.setMaximumSize(new Dimension(150,30));

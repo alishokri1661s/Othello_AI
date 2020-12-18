@@ -176,14 +176,6 @@ public class Board{
 
     public void changeTurn(){
         this.currentPlayer = getOppositeTurn(this.currentPlayer);
-        /*if (!canMove()){
-            this.currentPlayer = getOppositeTurn(this.currentPlayer);
-            if(!canMove()){
-                endGame();
-            }
-            findAvailableMoves();
-            return false;
-        }*/
         findAvailableMoves();
     }
 
@@ -256,6 +248,7 @@ public class Board{
         updateScores();
         int winner = getWinner();
         GUI.getInstance().endGame();
+        System.out.println((double) Agent.sumDepth / Agent.numberOfMoves);
     }
 
     void flipCells(Point move, Point direction){
