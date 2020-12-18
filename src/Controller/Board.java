@@ -25,7 +25,7 @@ public class Board{
     public final static int BLACK = 1 ;
     public final static int EMPTY = 0 ;
     private boolean useAI = true;
-
+    private double probability ;
 
     public int currentPlayer;
     public boolean isWhiteBot = true;
@@ -335,5 +335,13 @@ public class Board{
 
     public void setTurn (int turn){
         currentPlayer = turn;
+    }
+
+    public void setProbability(double probability) {
+        this.probability = probability;
+    }
+
+    public double getProbability() {
+        return probability;
     }
 }
