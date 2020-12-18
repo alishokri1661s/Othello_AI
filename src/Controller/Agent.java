@@ -22,14 +22,16 @@ public class Agent {
     private static long numberOfBurning = 0;
     private static int maxDepth = 6;
 
-    private ArrayList<Map.Entry<Point,Integer>> pointSort(HashSet<Point> set) {
+    private ArrayList<Map.Entry<Point,Integer>> pointSort(HashSet<Point> set, boolean isAsc) {
         HashMap<Point,Integer> map = new HashMap<>();
         for (Point p : set) {
             map.put(p,weights[p.x][p.y]);
         }
         ArrayList<Map.Entry<Point,Integer>> list = new ArrayList<>(map.entrySet());
-//        list.sort(Map.Entry.comparingByValue());
-        list.sort((Comparator) (o1, o2) -> ((Map.Entry<Point, Integer>) o2).getValue().compareTo(((Map.Entry<Point, Integer>) (o1)).getValue()));
+        if (isAsc)
+            list.sort(Map.Entry.comparingByValue());
+        else
+            list.sort((Comparator) (o1, o2) -> ((Map.Entry<Point, Integer>) o2).getValue().compareTo(((Map.Entry<Point, Integer>) (o1)).getValue()));
         return list;
     }
 
@@ -89,9 +91,13 @@ public class Agent {
 
         int value = Integer.MAX_VALUE;
 
-        for (Point p : board.getAvailableMoves()) {
+        ArrayList<Map.Entry<Point,Integer>> list = pointSort(board.getAvailableMoves(),false);
+
+        //for (Point p : board.getAvailableMoves()) {
+        for (Map.Entry<Point,Integer> p :list) {
             Board b = Board.copyBoard(board);
-            b.move(p);
+//            b.move(p);
+            b.move(p.getKey());
             value = Math.min(value, Maximize(b, alpha, beta, depth + 1));
             if (value <= alpha) {
                 return value;
@@ -117,7 +123,7 @@ public class Agent {
 
         int value = Integer.MIN_VALUE;
 
-        ArrayList<Map.Entry<Point,Integer>> list = pointSort(board.getAvailableMoves());
+        ArrayList<Map.Entry<Point,Integer>> list = pointSort(board.getAvailableMoves(),false);
 
 
         for (Map.Entry<Point,Integer> p :list) {
