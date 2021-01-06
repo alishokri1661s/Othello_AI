@@ -110,46 +110,42 @@ public class Agent {
             b.move(p);
             int heuristic_value = heuristic(b) ;
             b.setHeuristic(heuristic_value);
-            b.setProbability(heuristic_value);
+            //b.setProbability(heuristic_value);
             boards.add(b) ;
             sum += heuristic_value ;
         }
 
 
 
-        for(Board b : boards ){
-            b.setProbability(1- (b.getProbability()/sum));
-        }
-        boards.sort(Comparator.comparingInt(o -> (int) o.getProbability()));
+        /*for(Board b : boards ){
+            b.setProbability((b.getProbability()/sum));
+        }*/
 
-        int firstSize = boards.size();
-        int size = firstSize;
+        boards.sort(Comparator.comparingDouble(Board::getHeuristic));
+
+        ArrayList<Board> result = new ArrayList<>() ;
 
 
-        if (board.getAvailableMoves().size()<4)
+        if (board.getAvailableMoves().size() <= maxBranching)
             return boards;
-        /*if (board.getAvailableMoves().size()<6)
-            firstSize-=2;
-        if (board.getAvailableMoves().size()>9)
-            firstSize+=2;
-        if (board.getAvailableMoves().size()>13)
-            firstSize+=2;
-        if (board.getAvailableMoves().size()>17)
-            firstSize+=2;
-*/
-        double p;
-        for (int i = 0; i < firstSize-maxBranching ; i++) {
-            p = Math.random() ;
-            for (int j = 0 ; j < size ; j++) {
-                if (p <= boards.get(j).getProbability()){
-                    boards.remove(j);
-                    size--;
-                    break;
-                }
-            }
 
+        int size = board.getAvailableMoves().size();
+        double p;
+        double r = 0.05;
+        int c=0;
+        for (int i = 0; i < size ; i++) {
+            p = Math.random();
+            if (p<r && size-i-maxBranching > c) {
+                r+=0.05;
+                continue;
+            }
+            result.add(boards.get(i));
+            c++;
+
+            if (c==maxBranching)
+                break;
         }
-        return boards;
+        return result;
     }
 
     private int Minimize(Board board, int alpha, int beta, int depth) {
