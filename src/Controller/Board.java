@@ -18,19 +18,19 @@ public class Board{
         return instance;
     }
 
-    public static Agent agent = new Agent();
 
     public final int SIZE = 8 ;
     public final static int WHITE = 2;
     public final static int BLACK = 1 ;
     public final static int EMPTY = 0 ;
-    private boolean useAI = true;
     private double probability ;
     private int heuristic;
 
+    public Agent agentWhite;
+    public Agent agentBlack;
     public int currentPlayer;
     public boolean isWhiteBot = true;
-    public boolean isBlackBot = false;
+    public boolean isBlackBot = true;
 
     private HashSet<Point> availableMoves = new HashSet<>(); ;
     private int[][] board = new int[SIZE][SIZE] ;
@@ -47,6 +47,23 @@ public class Board{
         board.currentPlayer = b.currentPlayer;
         board.availableMoves = (HashSet<Point>) b.availableMoves.clone();
         return board;
+    }
+
+    public Board(){
+        init();
+        if (isWhiteBot)
+            agentWhite = new Agent(this);
+        if (isBlackBot)
+            agentBlack = new Agent(this);
+    }
+    public Board(boolean white, boolean black){
+        isWhiteBot=white;
+        isBlackBot=black;
+        if (isWhiteBot)
+            agentWhite = new Agent(this);
+        if (isBlackBot)
+            agentBlack = new Agent(this);
+        init();
     }
 
     public void init(){
@@ -191,13 +208,30 @@ public class Board{
         return availableMoves.contains(move);
     }
 
+    public int playAIvsAI(){
+        while(!checkEnd()) {
+            if (currentPlayer == BLACK)
+                move(agentBlack.iterative_deepening());
+            else
+                move(agentWhite.iterative_deepening());
+            changeTurn();
+        }
+
+        return getWinner();
+    }
+
     public void play (Point square){
         if (!isValidMove(square) && !isCurrentBot())
             return;
 
-        if(isCurrentBot())
+        if(isCurrentBot()){
 //            move(Board.getAgent().chooseMove());
-            move(Board.getAgent().iterative_deepening());
+            if (currentPlayer == BLACK)
+                move(agentBlack.iterative_deepening());
+            else
+                move(agentWhite.iterative_deepening());
+
+        }
         else
             move(square);
         changeTurn();
@@ -245,8 +279,6 @@ public class Board{
 
 
     private void endGame() {
-        updateScores();
-        int winner = getWinner();
         GUI.getInstance().endGame();
         System.out.println((double) Agent.sumDepth / Agent.numberOfMoves);
     }
@@ -305,10 +337,6 @@ public class Board{
     }
     public int getCurrentPlayer() {
         return currentPlayer;
-    }
-
-    public static Agent getAgent() {
-        return agent;
     }
 
     public void setTurn (int turn){

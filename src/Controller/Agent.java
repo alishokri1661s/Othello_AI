@@ -4,17 +4,7 @@ import Model.Point ;
 import java.util.*;
 
 public class Agent {
-    Board mainBoard = Board.getInstance();
-
-    private static int[][] weights = {
-            {99, -8, 8, 6, 6, 8, -8, 99},
-            {-8, -24, -4, -3, -3, -4, -24, -8},
-            {8, -4, 7, 4, 4, 7, -4, 8},
-            {6, -3, 4, 0, 0, 4, 3, 6},
-            {6, -3, 4, 0, 0, 4, 3, 6},
-            {8, -4, 7, 4, 4, 7, -4, 8},
-            {-8, -24, -4, -3, -3, -4, -24, -8},
-            {99, -8, 8, 6, 6, 8, -8, 99}};
+    private Board mainBoard;
 
     //for debug
     private static double T  ;
@@ -23,32 +13,70 @@ public class Agent {
     private static int maxDepth = 7;
     private static Date Time_start ;
     private static Date Time_end ;
-    private static final double Time_limit = 4000;
+    private static final double Time_limit = 50;
     private static boolean isCompleted ;
-    private static final int maxBranching = 4;
+    private static final int maxBranching = 3;
+    private static final boolean debuggingMode = false;
 
     public static int numberOfMoves=0;
     public static int sumDepth=0;
+    private int[] featureWeight;
+    public Agent(Board board){
+        mainBoard = board;
+    }
 
 
-    private ArrayList<Map.Entry<Point,Integer>> pointSort(HashSet<Point> set, boolean isAsc) {
-        HashMap<Point,Integer> map = new HashMap<>();
-        for (Point p : set) {
-            map.put(p,weights[p.x][p.y]);
+    private int[][] weights = {
+            {99, -8, 8, 6, 6, 8, -8, 99},
+            {-8, -24, -4, -3, -3, -4, -24, -8},
+            {8, -4, 7, 4, 4, 7, -4, 8},
+            {6, -3, 4, 0, 0, 4, 3, 6},
+            {6, -3, 4, 0, 0, 4, 3, 6},
+            {8, -4, 7, 4, 4, 7, -4, 8},
+            {-8, -24, -4, -3, -3, -4, -24, -8},
+            {99, -8, 8, 6, 6, 8, -8, 99},
+            {1,3}};
+
+
+    public void setWeights(int [] w){
+        featureWeight = w;
+        weights[0][0] = w[0];
+        weights[0][1] = w[1];
+        weights[0][2] = w[2];
+        weights[0][3] = w[3];
+
+        weights[1][1] = w[4];
+        weights[1][2] = w[5];
+        weights[1][3] = w[6];
+        weights[2][2] = w[7];
+        weights[2][3] = w[8];
+        weights[3][3] = w[9];
+
+
+        weights[8][0] = w[10];
+        weights[8][1] = w[11];
+
+
+        for (int i = 0; i < 4; i++) {
+
+            for (int j = 0; j < 4; j++) {
+                weights[j][i] = weights[i][j];
+                weights[7-i][j] = weights[i][j];
+                weights[7-i][7-j] = weights[i][j];
+                weights[i][7-j] = weights[i][j];
+            }
         }
-        ArrayList<Map.Entry<Point,Integer>> list = new ArrayList<>(map.entrySet());
-        if (isAsc)
-            list.sort(Map.Entry.comparingByValue());
-        else
-            list.sort((Comparator) (o1, o2) -> ((Map.Entry<Point, Integer>) o2).getValue().compareTo(((Map.Entry<Point, Integer>) (o1)).getValue()));
-        return list;
+    }
+
+    public int[] getFeatureWeight() {
+        return featureWeight;
     }
 
     public Point iterative_deepening(){
         Point move = null;
         Time_start = new Date( );
         T = 0 ;
-        for (int i = 6; i <50 ; i++) {
+        for (int i = 5; i <50 ; i++) {
             maxDepth = i ;
             Point Temp = chooseMove();
             Time_end = new Date() ;
@@ -62,8 +90,16 @@ public class Agent {
             }
             move = Temp ;
         }
-        System.out.println(T);
-        System.out.println(maxDepth) ;
+
+        if (move==null) {
+            maxDepth = 4;
+            move = chooseMove();
+        }
+
+        if (debuggingMode) {
+            System.out.println(T);
+            System.out.println(maxDepth) ;
+        }
         sumDepth+=maxDepth;
         numberOfMoves++;
         return move ;
@@ -73,6 +109,10 @@ public class Agent {
 
     //Called with the knowledge that there is a move to choose
     public Point chooseMove() {
+
+        if (mainBoard.getAvailableMoves().size()==1)
+            return mainBoard.getAvailableMoves().iterator().next();
+
         Date d1 = new Date();
         Point choice = null;
         int alpha = Integer.MIN_VALUE ;
@@ -87,8 +127,9 @@ public class Agent {
             Board b = Board.copyBoard(mainBoard);
             b.move(p);
             value = Minimize(b, alpha, beta, 0);
-            System.out.println(p + " - numberOfChildren: " + numberOfChildren
-                    + " - numberOfPruning: " + numberOfPruning);
+            if (debuggingMode)
+                System.out.println(p + " - numberOfChildren: " + numberOfChildren
+                        + " - numberOfPruning: " + numberOfPruning);
             if (maxValue < value) {
                 choice = p;
                 maxValue = value;
@@ -96,8 +137,11 @@ public class Agent {
             alpha = Math.max(alpha, value);
         }
         Date d2 = new Date();
-        System.out.println(( d2.getTime()-(double) d1.getTime())/1000);
-        System.out.println();
+        if (debuggingMode){
+            System.out.println(( d2.getTime()-(double) d1.getTime())/1000);
+            System.out.println();
+        }
+
         return choice;
     }
 
@@ -115,11 +159,6 @@ public class Agent {
             sum += heuristic_value ;
         }
 
-
-
-        /*for(Board b : boards ){
-            b.setProbability((b.getProbability()/sum));
-        }*/
 
         if (mainBoard.currentPlayer == board.currentPlayer)
             boards.sort(Comparator.comparingDouble(Board::getHeuristic).reversed());
@@ -153,7 +192,6 @@ public class Agent {
 
     private int Minimize(Board board, int alpha, int beta, int depth) {
         numberOfChildren++;
-//        System.out.println(depth + " - " + numberOfChildren);
 
         board.changeTurn();
 
@@ -165,21 +203,13 @@ public class Agent {
         }
 
         if (board.checkEnd() || depth > maxDepth) {
-//            return terminal(board);
             return board.getHeuristic();
         }
 
         int value = Integer.MAX_VALUE;
 
-        //ArrayList<Map.Entry<Point,Integer>> list = pointSort(board.getAvailableMoves(),false);
 
         ArrayList<Board> boards = assign_potential(board);
-
-        //for (Point p : board.getAvailableMoves()) {
-//        for (Map.Entry<Point,Integer> p :list) {
-//            Board b = Board.copyBoard(board);
-//            b.move(p);
-            //b.move(p.getKey());
 
         for (Board b: boards) {
             value = Math.min(value, Maximize(b, alpha, beta, depth + 1));
@@ -193,7 +223,6 @@ public class Agent {
 
     int Maximize(Board board, int alpha, int beta, int depth) {
         numberOfChildren++;
-//        System.out.println(depth + " - " + numberOfChildren);
 
         board.changeTurn();
 
@@ -214,13 +243,9 @@ public class Agent {
 
         int value = Integer.MIN_VALUE;
 
-
-        //ArrayList<Map.Entry<Point,Integer>> list = pointSort(board.getAvailableMoves(),false);
         ArrayList<Board> boards = assign_potential(board);
 
-//        for (Map.Entry<Point,Integer> p :list) {
-//            Board b = Board.copyBoard(board);
-//            b.move(p.getKey());
+
         for (Board b: boards) {
             value = Math.max(value, Minimize(b, alpha, beta, depth + 1));
 
@@ -236,27 +261,18 @@ public class Agent {
     private int heuristic(Board board) {
         int linearSum;
         if (board.currentPlayer == mainBoard.currentPlayer)
-            linearSum = board.getAvailableMoves().size();
+            linearSum =weights[8][0] *  board.getAvailableMoves().size();
         else
-            linearSum = -1* board.getAvailableMoves().size();
+            linearSum = -1 * weights[8][0] *  board.getAvailableMoves().size();
 
         for (int i = 0; i < board.getBoard().length; i++) {
             for (int j = 0; j < board.getBoard()[i].length; j++) {
                 int x = board.getColor(i,j) == mainBoard.currentPlayer ? 1 : -1  ;
                 x = board.getColor(i,j) == Board.EMPTY ? 0 : x ;
-                linearSum += weights[i][j] * 3 * x ;
+                linearSum += weights[i][j] * weights[8][1] * x ;
             }
         }
-//        System.out.println(linearSum);
-//        board.print();
         return linearSum;
     }
-
-    private int terminal(Board board) {
-        return heuristic(board);
-
-    }
-
-
 
 }

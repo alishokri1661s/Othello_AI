@@ -1,6 +1,7 @@
 package View;
 
 import Controller.Board;
+import Model.Point;
 
 import javax.swing.*;
 import java.awt.*;
@@ -77,6 +78,7 @@ public class EndingPanel extends JPanel implements ActionListener {
             Board.getInstance().init();
             setVisible(false);
             GUI.getInstance().paint();
+            Board.getInstance().play(new Point(1,1));
         }
     }
 }
