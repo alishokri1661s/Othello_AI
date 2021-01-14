@@ -121,7 +121,10 @@ public class Agent {
             b.setProbability((b.getProbability()/sum));
         }*/
 
-        boards.sort(Comparator.comparingDouble(Board::getHeuristic));
+        if (mainBoard.currentPlayer == board.currentPlayer)
+            boards.sort(Comparator.comparingDouble(Board::getHeuristic).reversed());
+        else
+            boards.sort(Comparator.comparingDouble(Board::getHeuristic));
 
         ArrayList<Board> result = new ArrayList<>() ;
 
@@ -244,6 +247,8 @@ public class Agent {
                 linearSum += weights[i][j] * 3 * x ;
             }
         }
+//        System.out.println(linearSum);
+//        board.print();
         return linearSum;
     }
 

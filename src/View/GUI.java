@@ -34,8 +34,8 @@ public class GUI extends JFrame implements MouseListener {
         main.setLayout(new BorderLayout());
         JPanel board = new JPanel();
         board.setLayout(new GridLayout(8, 8));
-        for(int y = 0; y < 8; y++) {
-            for(int x = 0; x < 8; x++) {
+        for(int x = 0; x < 8; x++) {
+            for(int y = 0; y < 8; y++) {
                 board.add(squares[x][y] = new Square(x, y));
             }
         }
