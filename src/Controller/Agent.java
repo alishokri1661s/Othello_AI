@@ -1,30 +1,28 @@
 package Controller;
 import Model.Point ;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public class Agent {
     private Board mainBoard;
 
     //for debug
-    private static double T  ;
+    private static long T  ;
     private static int numberOfChildren = 0;
     private static long numberOfPruning = 0;
     private static int maxDepth = 7;
     private static Date Time_start ;
     private static Date Time_end ;
-    private static final double Time_limit = 50;
+    private static long timeLimit = 10;
     private static boolean isCompleted ;
-    private static final int maxBranching = 3;
-    private static final boolean debuggingMode = false;
+    private static int maxBranching = 3;
+    public static boolean debuggingMode = false;
 
     public static int numberOfMoves=0;
     public static int sumDepth=0;
     private int[] featureWeight;
-    public Agent(Board board){
-        mainBoard = board;
-    }
-
 
     private int[][] weights = {
             {99, -8, 8, 6, 6, 8, -8, 99},
@@ -36,6 +34,34 @@ public class Agent {
             {-8, -24, -4, -3, -3, -4, -24, -8},
             {99, -8, 8, 6, 6, 8, -8, 99},
             {1,3}};
+
+    public Agent(Board board){
+        mainBoard = board;
+    }
+
+    public Agent(Board board, boolean readFromFile){
+        this(board);
+        if (readFromFile) {
+            int[] w = new int[12];
+            File file = new File("src/weight.txt");
+            try(Scanner sc = new Scanner(file)) {
+                for (int i = 0; i < 12; i++) {
+                    w[i] = sc.nextInt();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            setWeights(w);
+        }
+    }
+
+    public static void config(long timeLimit, int maxBranching, boolean debuggingMode){
+        Agent.timeLimit = timeLimit;
+        Agent.maxBranching = maxBranching;
+        Agent.debuggingMode = debuggingMode;
+    }
+
+
 
 
     public void setWeights(int [] w){
@@ -66,6 +92,15 @@ public class Agent {
                 weights[i][7-j] = weights[i][j];
             }
         }
+        printWeight();
+
+    }
+
+    private void printWeight() {
+        for (int i = 0; i < 8; i++) {
+            System.out.println(Arrays.toString(weights[i]));
+        }
+        System.out.println();
     }
 
     public int[] getFeatureWeight() {
@@ -85,7 +120,7 @@ public class Agent {
                 maxDepth-- ;
                 break;
             }
-            else if(T > Time_limit){
+            else if(T > timeLimit){
                 break ;
             }
             move = Temp ;
@@ -100,8 +135,10 @@ public class Agent {
             System.out.println(T);
             System.out.println(maxDepth) ;
         }
-        sumDepth+=maxDepth;
-        numberOfMoves++;
+        if (debuggingMode) {
+            sumDepth += maxDepth;
+            numberOfMoves++;
+        }
         return move ;
 
     }
@@ -197,7 +234,7 @@ public class Agent {
 
         Time_end = new Date() ;
         T = Time_end.getTime() - Time_start.getTime();
-        if(T>=Time_limit){
+        if(T>= timeLimit){
             isCompleted = false ;
             return 0 ;
         }
@@ -228,7 +265,7 @@ public class Agent {
 
         Time_end = new Date() ;
         T = Time_end.getTime() - Time_start.getTime();
-        if(T>=Time_limit){
+        if(T>= timeLimit){
             isCompleted = false ;
             return 0 ;
         }

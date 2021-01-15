@@ -1,19 +1,15 @@
 package Controller;
 
-import Model.Point;
-
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
-import java.util.Map.Entry;
 
 public class MachineLearning {
     private final int SIZE = 12;
-    private final int MAX = 150;
-    private final double crossOverRate = 0.85;
-    private final double mutationRate = 0.3;
+    private final int MAX = 100;
+    private final double crossOverRate = 0.75;
+    private final double mutationRate = 0.4;
     private final int limit = 10;
     private ArrayList<int[]> population = new ArrayList<>();
 
@@ -85,7 +81,9 @@ public class MachineLearning {
             map.put(i,0);
         }
         for (int i = 0; i < population.size(); i++) {
-            for (int j = i+1; j < population.size(); j++) {
+            for (int j = 0; j < population.size(); j++) {
+                if (i==j)
+                    break;
                 System.out.print("start game between " + i + " and " + j +" ...  ");
                 int winner = AIvsAI(population.get(i),population.get(j));
                 System.out.println("end game");
@@ -95,8 +93,8 @@ public class MachineLearning {
                 else if (winner == Board.WHITE)
                     map.put(j,map.get(j)+2);
                 else{
-                    map.put(i,map.get(i)+2);
-                    map.put(j,map.get(j)+2);
+                    map.put(i,map.get(i)+1);
+                    map.put(j,map.get(j)+1);
                 }
             }
         }
@@ -110,12 +108,13 @@ public class MachineLearning {
                 .stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .limit(limit)
-                .forEachOrdered(x -> newParent.add(population.get(x.getKey())));
+                .forEachOrdered(x -> {newParent.add(population.get(x.getKey()));
+                    System.out.println("First: " + population.get(x.getKey())[0] +" - score: " + x.getValue());} );
 
         population = newParent;
     }
 
-    private void saveTheBest() {
+    private void saveTheBest(int num) {
         File file = new File("src/weight.txt");
         File history = new File("src/history.txt");
 
@@ -126,7 +125,17 @@ public class MachineLearning {
             for (int i = 0; i < SIZE; i++) {
                 writer.write(population.get(0)[i]+ " ");
             }
-            fw.append(Arrays.toString(population.get(0)));
+            if(num==1)
+                fw.append("\n**************************\n\n");
+            if (num==-1)
+                fw.append("Final --------------------------------\n");
+            else
+                fw.append(String.valueOf(num)).append(" --------------------------------\n");
+
+            for (int i = 0; i < population.size(); i++) {
+                fw.append(Arrays.toString(population.get(i)));
+                fw.append('\n');
+            }
             fw.append('\n');
         } catch (IOException e) {
             e.printStackTrace();
@@ -143,7 +152,7 @@ public class MachineLearning {
         System.out.println("\nGeneration 1: " + time/(1000*60) + " minutes");
         chooseBest(m);
         System.out.println(Arrays.toString(population.get(0))+"\n\n");
-        saveTheBest();
+        saveTheBest(1);
 
         for (int i = 0; i < depth; i++) {
             generateChildren();
@@ -155,15 +164,18 @@ public class MachineLearning {
             System.out.println("\nGeneration "+ (i+2) + ": " + time/(1000*60) + " minutes");
             chooseBest(m);
             System.out.println(Arrays.toString(population.get(0))+"\n\n");
-            saveTheBest();
+            saveTheBest(i+2);
         }
+        m=playAI();
+        chooseBest(m);
+        saveTheBest(-1);
     }
 
 
 
     public static void main(String[] args) {
         MachineLearning machine = new MachineLearning();
-
+        Agent.config(10,3,false);
         machine.simulateEvolution(10);
 
     }

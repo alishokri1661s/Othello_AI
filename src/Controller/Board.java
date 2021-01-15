@@ -30,7 +30,7 @@ public class Board{
     public Agent agentBlack;
     public int currentPlayer;
     public boolean isWhiteBot = true;
-    public boolean isBlackBot = true;
+    public boolean isBlackBot = false;
 
     private HashSet<Point> availableMoves = new HashSet<>(); ;
     private int[][] board = new int[SIZE][SIZE] ;
@@ -39,7 +39,7 @@ public class Board{
     private int whiteScore=2;
 
     public static Board copyBoard (Board b){
-        Board board = new Board();
+        Board board = new Board(true);
 
         board.setBoard(copyMatrix(b.getBoard()));
         board.whiteScore = b.getWhiteScore();
@@ -51,11 +51,16 @@ public class Board{
 
     public Board(){
         init();
+        Agent.config(2000,4,true);
         if (isWhiteBot)
-            agentWhite = new Agent(this);
+            agentWhite = new Agent(this,true);
         if (isBlackBot)
             agentBlack = new Agent(this);
     }
+    public Board(boolean usingAgent){
+        init();
+    }
+
     public Board(boolean white, boolean black){
         isWhiteBot=white;
         isBlackBot=black;
@@ -280,7 +285,9 @@ public class Board{
 
     private void endGame() {
         GUI.getInstance().endGame();
-        System.out.println((double) Agent.sumDepth / Agent.numberOfMoves);
+        if (Agent.debuggingMode)
+        System.out.println("Average depth: " + (double) Agent.sumDepth / Agent.numberOfMoves);
+
     }
 
     void flipCells(Point move, Point direction){
