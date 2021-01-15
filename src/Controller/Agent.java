@@ -19,6 +19,7 @@ public class Agent {
     private static boolean isCompleted ;
     private static int maxBranching = 3;
     public static boolean debuggingMode = false;
+    private static boolean usingTimeLimit = true ;
 
     public static int numberOfMoves=0;
     public static int sumDepth=0;
@@ -55,10 +56,11 @@ public class Agent {
         }
     }
 
-    public static void config(long timeLimit, int maxBranching, boolean debuggingMode){
+    public static void config(long timeLimit, int maxBranching, boolean debuggingMode,boolean usingTimeLimit){
         Agent.timeLimit = timeLimit;
         Agent.maxBranching = maxBranching;
         Agent.debuggingMode = debuggingMode;
+        Agent.usingTimeLimit = usingTimeLimit ;
     }
 
 
@@ -111,21 +113,22 @@ public class Agent {
         Point move = null;
         Time_start = new Date( );
         T = 0 ;
-        for (int i = 5; i <50 ; i++) {
-            maxDepth = i ;
-            Point Temp = chooseMove();
-            Time_end = new Date() ;
-            T = Time_end.getTime() - Time_start.getTime() ;
-            if(!isCompleted){
-                maxDepth-- ;
-                break;
+        if(usingTimeLimit) {
+            for (int i = 5; i <50 ; i++) {
+                maxDepth = i ;
+                Point Temp = chooseMove();
+                Time_end = new Date() ;
+                T = Time_end.getTime() - Time_start.getTime() ;
+                if(!isCompleted){
+                    maxDepth-- ;
+                    break;
+                }
+                else if(T > timeLimit){
+                    break ;
+                }
+                move = Temp ;
             }
-            else if(T > timeLimit){
-                break ;
-            }
-            move = Temp ;
         }
-
         if (move==null) {
             maxDepth = 4;
             move = chooseMove();

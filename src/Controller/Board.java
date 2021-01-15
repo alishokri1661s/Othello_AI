@@ -51,7 +51,7 @@ public class Board{
 
     public Board(){
         init();
-        Agent.config(2000,4,true);
+        Agent.config(2000,4,true,true);
         if (isWhiteBot)
             agentWhite = new Agent(this,true);
         if (isBlackBot)

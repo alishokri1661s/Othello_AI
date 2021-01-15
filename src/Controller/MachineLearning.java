@@ -4,11 +4,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MachineLearning {
     private final int SIZE = 11;
     private final int MAX = 100;
-    private final double crossOverRate = 0.85;
+    private final double crossOverRate = 0.7;
     private final double mutationRate = 0.4;
     private final int limit = 10;
     private ArrayList<int[]> population = new ArrayList<>();
@@ -36,8 +37,13 @@ public class MachineLearning {
 
     private void mutation (int[] w){
         Random random = new Random();
-        int rand = random.nextInt(SIZE);
-        w[rand] = random.nextInt(2* MAX +1 ) - MAX;
+        int rand1 = random.nextInt(SIZE);
+        int rand2 = random.nextInt(SIZE);
+        while(rand1==rand2){
+            rand2 = random.nextInt(SIZE);
+        }
+        w[rand1] = random.nextInt(2* MAX +1 ) - MAX;
+        w[rand2] = random.nextInt(2* MAX +1) - MAX ;
     }
 
     private int[] randomWeights(){
@@ -117,12 +123,12 @@ public class MachineLearning {
 
     private void chooseBest(Map<Integer,Integer> scoreMap){
         ArrayList<int[]> newParent = new ArrayList<>();
-
         scoreMap.entrySet()
                 .stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .limit(limit)
-                .forEachOrdered(x -> {newParent.add(population.get(x.getKey()));
+                .forEachOrdered(x -> {
+                    newParent.add(population.get(x.getKey()));
                     System.out.println("First: " + population.get(x.getKey())[0] +" - score: " + x.getValue());} );
 
         population = newParent;
@@ -169,6 +175,8 @@ public class MachineLearning {
         saveTheBest(1);
 
         for (int i = 0; i < depth; i++) {
+            if(i>1 && i < 7)
+                population.add(randomWeights());
             generateChildren();
             System.out.println(population.size());
             startTime = new Date();
@@ -189,7 +197,7 @@ public class MachineLearning {
 
     public static void main(String[] args) {
         MachineLearning machine = new MachineLearning();
-        Agent.config(20,3,false);
+        Agent.config(20,3,false,false);
         machine.simulateEvolution(10);
 
     }
