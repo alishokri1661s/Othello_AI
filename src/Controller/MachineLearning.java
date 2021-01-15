@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class MachineLearning {
-    private final int SIZE = 12;
+    private final int SIZE = 11;
     private final int MAX = 100;
     private final double crossOverRate = 0.75;
     private final double mutationRate = 0.4;
@@ -175,7 +175,7 @@ public class MachineLearning {
 
     public static void main(String[] args) {
         MachineLearning machine = new MachineLearning();
-        Agent.config(10,3,false);
+        Agent.config(30,3,false);
         machine.simulateEvolution(10);
 
     }

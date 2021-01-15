@@ -33,7 +33,7 @@ public class Agent {
             {8, -4, 7, 4, 4, 7, -4, 8},
             {-8, -24, -4, -3, -3, -4, -24, -8},
             {99, -8, 8, 6, 6, 8, -8, 99},
-            {1,3}};
+            {1}};
 
     public Agent(Board board){
         mainBoard = board;
@@ -42,10 +42,10 @@ public class Agent {
     public Agent(Board board, boolean readFromFile){
         this(board);
         if (readFromFile) {
-            int[] w = new int[12];
+            int[] w = new int[11];
             File file = new File("src/weight.txt");
             try(Scanner sc = new Scanner(file)) {
-                for (int i = 0; i < 12; i++) {
+                for (int i = 0; i < 11; i++) {
                     w[i] = sc.nextInt();
                 }
             } catch (IOException e) {
@@ -80,7 +80,6 @@ public class Agent {
 
 
         weights[8][0] = w[10];
-        weights[8][1] = w[11];
 
 
         for (int i = 0; i < 4; i++) {
@@ -92,7 +91,8 @@ public class Agent {
                 weights[i][7-j] = weights[i][j];
             }
         }
-        printWeight();
+        if (debuggingMode)
+            printWeight();
 
     }
 
@@ -298,15 +298,15 @@ public class Agent {
     private int heuristic(Board board) {
         int linearSum;
         if (board.currentPlayer == mainBoard.currentPlayer)
-            linearSum =weights[8][0] *  board.getAvailableMoves().size();
+            linearSum =weights[8][0]/10 *  board.getAvailableMoves().size();
         else
-            linearSum = -1 * weights[8][0] *  board.getAvailableMoves().size();
+            linearSum = -1 * weights[8][0]/10 *  board.getAvailableMoves().size();
 
         for (int i = 0; i < board.getBoard().length; i++) {
             for (int j = 0; j < board.getBoard()[i].length; j++) {
                 int x = board.getColor(i,j) == mainBoard.currentPlayer ? 1 : -1  ;
                 x = board.getColor(i,j) == Board.EMPTY ? 0 : x ;
-                linearSum += weights[i][j] * weights[8][1] * x ;
+                linearSum += weights[i][j] * x ;
             }
         }
         return linearSum;
