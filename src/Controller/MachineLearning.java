@@ -8,20 +8,29 @@ import java.util.*;
 public class MachineLearning {
     private final int SIZE = 11;
     private final int MAX = 100;
-    private final double crossOverRate = 0.75;
+    private final double crossOverRate = 0.85;
     private final double mutationRate = 0.4;
     private final int limit = 10;
     private ArrayList<int[]> population = new ArrayList<>();
 
 
-    private int[] crossOver (int[] w1, int[] w2){
+    private int[][] crossOver (int[] w1, int[] w2){
         Random random = new Random();
-        int rand = random.nextInt(SIZE-1 )+1;
-        int[] result = new int[SIZE];
-        for (int i = 0; i < rand; i++)
-            result[i] = w1[i];
-        for (int i = rand; i < SIZE; i++)
-            result[i] = w2[i];
+        int rand = random.nextInt(SIZE-2 )+1;
+        int rand2 = random.nextInt(SIZE - rand -1 ) + 1 + rand;
+        int[][] result = new int[2][SIZE];
+        for (int i = 0; i < rand; i++) {
+            result[0][i] = w1[i];
+            result[1][i] = w2[i];
+        }
+        for (int i = rand; i < rand2; i++) {
+            result[0][i] = w2[i];
+            result[1][i] = w1[i];
+        }
+        for (int i = rand2; i < SIZE; i++) {
+            result[0][i] = w1[i];
+            result[1][i] = w2[i];
+        }
         return result;
     }
 
@@ -62,14 +71,19 @@ public class MachineLearning {
         for (int i = 0; i < parentSize; i++) {
             for (int j = i+1; j < parentSize; j++) {
                 r = Math.random();
-                int[] child;
+                int[][] child;
                 if (r <= crossOverRate){
                     child = crossOver(population.get(i),population.get(j));
                     r = Math.random();
                     if (r <= mutationRate){
-                        mutation(child);
+                        mutation(child[0]);
                     }
-                    population.add(child);
+                    r = Math.random();
+                    if (r <= mutationRate){
+                        mutation(child[1]);
+                    }
+                    population.add(child[0]);
+                    population.add(child[1]);
                 }
             }
         }
@@ -81,9 +95,9 @@ public class MachineLearning {
             map.put(i,0);
         }
         for (int i = 0; i < population.size(); i++) {
-            for (int j = 0; j < population.size(); j++) {
-                if (i==j)
-                    break;
+            for (int j = i+1; j < population.size(); j++) {
+                /*if (i==j)
+                    continue;*/
                 System.out.print("start game between " + i + " and " + j +" ...  ");
                 int winner = AIvsAI(population.get(i),population.get(j));
                 System.out.println("end game");
@@ -175,7 +189,7 @@ public class MachineLearning {
 
     public static void main(String[] args) {
         MachineLearning machine = new MachineLearning();
-        Agent.config(30,3,false);
+        Agent.config(20,3,false);
         machine.simulateEvolution(10);
 
     }
