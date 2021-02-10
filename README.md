@@ -10,3 +10,5 @@ For the game to be playable we also added a new feature to include time limited 
 The heuristic were learned using a Evolutionary Algorithm that pited randomly generated Agents against each other and the 10 most superior were chosen to advance and to crossover. 
 
 To mitigate problems with lack of diversity we also included mutation with reasonably high chance on our population and also introduced a randomly generated Agent in every iteration of our population cycle.
+
+The core of this project has been completed but a few small changes may be done to improve our genetic algorithm and also add multithreading to speed up training.
